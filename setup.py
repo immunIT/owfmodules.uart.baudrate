@@ -4,14 +4,14 @@
 
 from setuptools import setup, find_packages
 
-__authors__ = ""
-__copyright__ = ""
+__authors__ = "Jordan Ovrè, Paul Duncan"
+__copyright__ = "Copyright (c) Jordan Ovrè / Paul Duncan"
 __license__ = "GPLv3"
 __version__ = "1.0.0"
-__contact__ = ""
+__contact__ = "Jordan Ovrè / Ghecko <ghecko78@gmail.com>, Paul Duncan / Eresse <eresse@dooba.io>"
 
-description = ''
-name = 'owfmodules.<category>.<module_name>'
+description = 'Octowire Framework UART baudrate detection'
+name = 'owfmodules.uart.baudrates'
 
 setup(
     name=name,
@@ -27,5 +27,5 @@ setup(
         'Programming Language :: Python :: 3',
         'Development Status :: 5 - Production/Stable'
     ],
-    keywords=['octowire', 'framework', 'hardware', 'security']
+    keywords=['octowire', 'framework', 'hardware', 'security', 'baudrate', 'UART', 'detection']
 )
