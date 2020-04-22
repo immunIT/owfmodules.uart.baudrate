@@ -26,13 +26,14 @@ class Baudrates(AModule):
             'description': 'Perform UART baudrate detection',
             'author': 'Jordan Ovrè <ghecko78@gmail.com> / Paul Duncan <eresse@dooba.io>'
         })
-        self.options = [
-            {"Name": "uart_interface", "Value": "", "Required": True, "Type": "int",
-             "Description": "The octowire UART interface (0=UART0 or 1=UART1)", "Default": 0},
-            {"Name": "trigger", "Value": "", "Required": True, "Type": "bool",
-             "Description": "If true, trigger the device if the Octowire\ndid not receive anything from the target",
-             "Default": False}
-        ]
+        self.options = {
+            "uart_interface": {"Value": "", "Required": True, "Type": "int",
+                               "Description": "The octowire UART interface (0=UART0 or 1=UART1)", "Default": 0},
+            "trigger": {"Value": "", "Required": True, "Type": "bool",
+                        "Description": "If true, trigger the device if the Octowire\ndid not receive anything "
+                                       "from the target",
+                        "Default": False}
+        }
         self.vowels = ["a", "A", "e", "E", "i", "I", "o", "O", "u", "U"]
         self.whitespace = [" ", "\t", "\r", "\n"]
         self.punctation = [".", ",", ":", ";", "?", "!"]
@@ -128,8 +129,8 @@ class Baudrates(AModule):
         threshold = 20
         valid_characters = self.gen_char_list()
 
-        uart_interface = self.get_option_value("uart_interface")
-        trigger = self.get_option_value("trigger")
+        uart_interface = self.options["uart_interface"]["Value"]
+        trigger = self.options["trigger"]["Value"]
 
         # Set and configure UART interface
         uart_instance = UART(serial_instance=self.owf_serial, interface_id=uart_interface)
