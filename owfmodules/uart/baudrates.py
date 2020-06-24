@@ -1,10 +1,10 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # Octowire Framework
-# Copyright (c) Jordan Ovrè / Paul Duncan
-# License: GPLv3
-# Paul Duncan / Eresse <eresse@dooba.io>
-# Jordan Ovrè / Ghecko <ghecko78@gmail.com
+# Copyright (c) ImmunIT - Jordan Ovrè / Paul Duncan
+# License: Apache 2.0
+# Paul Duncan / Eresse <pduncan@immunit.ch>
+# Jordan Ovrè / Ghecko <jovre@immunit.ch>
 
 import codecs
 import time
@@ -24,7 +24,7 @@ class Baudrates(AModule):
             'name': 'UART baudrate detection',
             'version': '1.0.0',
             'description': 'Perform UART baudrate detection',
-            'author': 'Jordan Ovrè <ghecko78@gmail.com> / Paul Duncan <eresse@dooba.io>'
+            'author': 'Jordan Ovrè / Ghecko <jovre@immunit.ch>, Paul Duncan / Eresse <pduncan@immunit.ch>'
         })
         self.options = {
             "uart_interface": {"Value": "", "Required": True, "Type": "int",
@@ -104,12 +104,12 @@ class Baudrates(AModule):
         uart_instance.passthrough()
         self.owf_serial.close()
         config = load_config()
-        if self.get_advanced_option_value("detect_octowire"):
+        if self.advanced_options["detect_octowire"]["Value"]:
             octowire_port = detect_octowire(verbose=False)
             config['OCTOWIRE']['port'] = octowire_port
         else:
-            octowire_port = self.get_advanced_option_value("octowire")
-            octowire_baudrate = self.get_advanced_option_value("baudrate")
+            octowire_port = self.advanced_options["detect_octowire"]["Value"]
+            octowire_baudrate = self.advanced_options["baudrate"]["Value"]
             config['OCTOWIRE']['port'] = octowire_port
             config['OCTOWIRE']['baudrate'] = octowire_baudrate
         miniterm(None, config)
