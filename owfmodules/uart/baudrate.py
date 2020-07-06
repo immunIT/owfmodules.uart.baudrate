@@ -17,9 +17,9 @@ from octowire.utils.serial_utils import detect_octowire
 from prompt_toolkit import prompt
 
 
-class Baudrates(AModule):
+class Baudrate(AModule):
     def __init__(self, owf_config):
-        super(Baudrates, self).__init__(owf_config)
+        super(Baudrate, self).__init__(owf_config)
         self.meta.update({
             'name': 'UART baudrate detection',
             'version': '1.0.0',

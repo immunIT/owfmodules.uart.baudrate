@@ -11,7 +11,7 @@ __version__ = "1.0.0"
 __contact__ = "Jordan Ovrè / Ghecko <jovre@immunit.ch>, Paul Duncan / Eresse <pduncan@immunit.ch>"
 
 description = 'Octowire Framework UART baudrate detection'
-name = 'owfmodules.uart.baudrates'
+name = 'owfmodules.uart.baudrate'
 
 setup(
     name=name,
