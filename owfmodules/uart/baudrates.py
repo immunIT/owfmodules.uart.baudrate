@@ -28,10 +28,10 @@ class Baudrates(AModule):
         })
         self.options = {
             "uart_interface": {"Value": "", "Required": True, "Type": "int",
-                               "Description": "The octowire UART interface (0=UART0 or 1=UART1)", "Default": 0},
+                               "Description": "The Octowire UART interface (0=UART0 or 1=UART1)", "Default": 0},
             "trigger": {"Value": "", "Required": True, "Type": "bool",
-                        "Description": "If true, trigger the device if the Octowire\ndid not receive anything "
-                                       "from the target",
+                        "Description": "When true, send a newline if the Octowire\ndoes not receive"
+                                       "anything from the target",
                         "Default": False}
         }
         self.vowels = ["a", "A", "e", "E", "i", "I", "o", "O", "u", "U"]
@@ -53,8 +53,8 @@ class Baudrates(AModule):
 
     def gen_char_list(self):
         """
-        Generate human readable characters list.
-        :return: character's list
+        Generate human readable character list.
+        :return: character list
         """
         c = ' '
         valid_characters = []
@@ -73,9 +73,9 @@ class Baudrates(AModule):
 
     def change_baudrate(self, uart_instance, baudrate):
         """
-        This function change the baudrate speed for the target device.
+        This function changes the baudrate for the target device.
         :param uart_instance: Octowire UART instance.
-        :param baudrate: Baudrate speed dictionary (decimal and hexadecimal value)
+        :param baudrate: Baudrate dictionary (decimal and hexadecimal value)
         :return: bool
         """
         self.logger.handle(f'Switching to baudrate {baudrate}...', self.logger.INFO)
@@ -94,9 +94,9 @@ class Baudrates(AModule):
     def trigger_device(self, uart_instance):
         """
         Send a carriage return to trigger the target device
-        in case no byte(s) is received
+        in case nothing is received
         """
-        self.logger.handle("Trigger the device", self.logger.INFO)
+        self.logger.handle("Triggering the device", self.logger.INFO)
         uart_instance.transmit(b'\x0D\x0A')
         time.sleep(0.2)
 
@@ -118,8 +118,8 @@ class Baudrates(AModule):
 
     def baudrate_detect(self):
         """
-        The main function. Change the baudrate speed
-        and check if the received byte(s) from RX pin are valid characters.
+        The main function. Change the baudrate
+        and check if bytes received on the RX pin are valid characters.
         25 valid characters are required to identify the correct baudrate value.
         """
         count = 0
@@ -142,7 +142,7 @@ class Baudrates(AModule):
             loop = 0
             if self.change_baudrate(uart_instance=uart_instance, baudrate=baudrate):
                 # Dynamic printing
-                progress = self.logger.progress('Read byte(s)')
+                progress = self.logger.progress('Reading bytes')
                 while True:
                     if self.wait_bytes(uart_instance=uart_instance):
                         tmp = uart_instance.receive(1)
@@ -198,8 +198,8 @@ class Baudrates(AModule):
         Try to detect a valid UART baudrate.
         :return:
         """
-        # If detect_octowire is True then Detect and connect to the Octowire hardware. Else, connect to the Octowire
-        # using the parameters that were configured. It sets the self.owf_serial variable if the hardware is found.
+        # If detect_octowire is True then detect and connect to the Octowire hardware. Else, connect to the Octowire
+        # using the parameters that were configured. This sets the self.owf_serial variable if the hardware is found.
         self.connect()
         if not self.owf_serial:
             return

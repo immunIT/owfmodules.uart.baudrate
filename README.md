@@ -1,3 +1,3 @@
 # owfmodules.uart.baudrates
 
-Perform UART baudrates detection
+Perform UART baudrate detection
