@@ -11,7 +11,6 @@ import time
 
 from octowire_framework.module.AModule import AModule
 from octowire_framework.core.commands.miniterm import miniterm
-from octowire_framework.core.config import load_config
 from octowire.uart import UART
 from octowire.gpio import GPIO
 from octowire.utils.serial_utils import detect_octowire
@@ -184,11 +183,10 @@ class Baudrate(AModule):
         """
         self.uart_instance.passthrough()
         self.owf_serial.close()
-        config = load_config()
         if self.config["OCTOWIRE"]["detect"]:
             octowire_port = detect_octowire(verbose=False)
-            config['OCTOWIRE']['port'] = octowire_port
-        miniterm(None, config)
+            self.config['OCTOWIRE']['port'] = octowire_port
+        miniterm(None, self.config)
         self.logger.handle("Please press the Octowire User button to exit the UART "
                            "passthrough mode", self.logger.USER_INTERACT)
 
