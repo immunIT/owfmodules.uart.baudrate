@@ -183,7 +183,7 @@ class Baudrate(AModule):
         """
         self.uart_instance.passthrough()
         self.owf_serial.close()
-        if self.config["OCTOWIRE"]["detect"]:
+        if self.config["OCTOWIRE"].getint("detect"):
             octowire_port = detect_octowire(verbose=False)
             self.config['OCTOWIRE']['port'] = octowire_port
         miniterm(None, self.config)
