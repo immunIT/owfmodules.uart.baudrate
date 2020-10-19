@@ -28,59 +28,59 @@ class Baudrate(AModule):
         })
         self.options = {
             "uart_interface": {"Value": "", "Required": True, "Type": "int",
-                               "Description": "The Octowire UART interface (0=UART0 or 1=UART1)", "Default": 0},
+                               "Description": "UART interface (0=UART0 or 1=UART1)", "Default": 0},
             "mode": {"Value": "", "Required": True, "Type": "text",
-                     "Description": "Method used to perform the baudrate detection.\nIn the 'incremental' mode, the "
-                                    "baudrate is incremented by the 'baudrate_increment' advanced option starting from "
-                                    "'baudrate_min' and ending with the 'baudrate_max' advanced options \nIn the 'list'"
-                                    " mode, the baudrate value defined in the 'baudrate_list' advanced option will be "
-                                    "tested. Acceptable values: 'list' & 'incremental'.",
+                     "Description": "Method used to perform baudrate detection. See advanced options for details\nIn "
+                                    "'incremental' mode, the baudrate starts at 'baudrate_min' and is incremented by "
+                                    "'baudrate_inc' up to 'baudrate_max'.\nIn the 'list' mode, all values "
+                                    "defined in 'baudrate_list' will be tested.\nAcceptable values: 'list' & "
+                                    "'incremental'.", 
                      "Default": "incremental"},
             "reset_pin": {"Value": "", "Required": False, "Type": "int",
-                          "Description": "GPIO used as the Reset line. If defined, the module will try to reset the "
-                                         "target using the defined GPIO. See the 'reset_dir' advanced option to "
-                                         "defined the direction.",
+                          "Description": "GPIO used as slave reset. If defined, the module will pulse this GPIO to "
+                                         "reset the target. See the 'reset_pol' advanced option to "
+                                         "define the polarity.",
                           "Default": ""},
             "trigger": {"Value": "", "Required": True, "Type": "bool",
-                        "Description": "When true, send the characters defined by the 'trigger_char' advanced options "
-                                       "if the Octowire does not receive anything from the target",
+                        "Description": "When true, send the character(s) defined in 'trigger_char' (see advanced "
+                                       "options) if the Octowire does not receive anything from the target",
                         "Default": False}
         }
         self.advanced_options.update({
-            "reset_dir": {"Value": "", "Required": True, "Type": "text",
-                          "Description": "The direction of the reset line to reset the target. "
-                                         "Acceptable values: 'low' & 'high'",
+            "reset_pol": {"Value": "", "Required": True, "Type": "text",
+                          "Description": "The polarity of the reset line to reset the target. "
+                                         "Acceptable values: 'low' (active-low) & 'high'",
                           "Default": "low"},
             "reset_hold": {"Value": "", "Required": True, "Type": "float",
-                           "Description": "'Reset_pin' hold time required to perform a reset (in seconds)",
+                           "Description": "Hold time required to perform a target reset (in seconds).",
                            "Default": 0.1},
             "reset_delay": {"Value": "", "Required": True, "Type": "float",
-                            "Description": "The time to wait after a reset attempt.",
+                            "Description": "Time to wait after a target reset.",
                             "Default": 0.5},
             "baudrate_min": {"Value": "", "Required": True, "Type": "int",
-                             "Description": "The minimal baudrate value to test. (Incremental mode only)",
+                             "Description": "Minimum baudrate value. (Incremental mode only)",
                              "Default": 300},
             "baudrate_max": {"Value": "", "Required": True, "Type": "int",
-                             "Description": "The maximum baudrate value to test. (Incremental mode only)",
+                             "Description": "Maximum baudrate value. (Incremental mode only)",
                              "Default": 115200},
-            "baudrate_increment": {"Value": "", "Required": True, "Type": "int",
-                                   "Description": "The baudrate incremental value. (Incremental mode only)",
-                                   "Default": 300},
+            "baudrate_inc": {"Value": "", "Required": True, "Type": "int",
+                             "Description": "The baudrate increment value. (Incremental mode only)",
+                             "Default": 300},
             "baudrate_list": {"Value": "", "Required": True, "Type": "text",
-                              "Description": "The baudrate values to test (comma separated). (List mode only)",
+                              "Description": "Baudrate values to test (comma separated). (List mode only)",
                               "Default": "9600,19200,38400,57600,115200"},
             "trigger_char": {"Value": "", "Required": True, "Type": "hextobytes",
-                             "Description": "The character(s) to send when the 'trigger' options is set to True. "
+                             "Description": "Character(s) to send when the 'trigger' options is set to True. "
                                             "Format: raw hex (no leading '0x')",
                              "Default": "0D0A"},
         })
-        self.vowels = ["a", "A", "e", "E", "i", "I", "o", "O", "u", "U"]
+        self.vowels = ["a", "A", "e", "E", "i", "I", "o", "O", "u", "U", "y", "Y"]
         self.whitespace = [" ", "\t", "\r", "\n"]
         self.punctation = [".", ",", ":", ";", "?", "!"]
         self.control = [b'\x0e', b'\x0f', b'\xe0', b'\xfe', b'\xc0', b'\x0d', b'\x0a']
         self.baudrates = [9600, 19200, 38400, 57600, 115200]
         self.uart_instance = None
-        self.reset_line = None
+        self.reset_pin = None
         self.valid_characters = None
 
     def check_options(self):
@@ -88,10 +88,10 @@ class Baudrate(AModule):
         Check the user's defined options.
         :return: Bool.
         """
-        # If reset_pin is set and reset_dir invalid
+        # If reset_pin is set and reset_pol invalid
         if self.options["reset_pin"]["Value"] != "":
-            if self.advanced_options["reset_dir"]["Value"].upper() not in ["LOW", "HIGH"]:
-                self.logger.handle("Invalid reset direction.", self.logger.ERROR)
+            if self.advanced_options["reset_pol"]["Value"].upper() not in ["LOW", "HIGH"]:
+                self.logger.handle("Invalid reset polarity.", self.logger.ERROR)
                 return False
             if self.options["reset_pin"]["Value"] not in range(0, 15):
                 self.logger.handle("Invalid reset pin.", self.logger.ERROR)
@@ -221,7 +221,7 @@ class Baudrate(AModule):
                     byte = tmp.decode('utf-8')
                 except UnicodeDecodeError:
                     byte = tmp
-                # Check if it is a valid character.
+                # Check if it is a valid character
                 if byte in self.valid_characters:
                     if byte in self.whitespace:
                         whitespace += 1
@@ -255,19 +255,19 @@ class Baudrate(AModule):
 
     def reset_target(self):
         """
-        If the reset_pin option is set, reset the target depending of the reset direction.
+        If the reset_pin option is set, reset the target.
         :return: Nothing
         """
-        if self.reset_line is not None:
-            self.logger.handle("Attempt to reset the target..", self.logger.INFO)
-            if self.advanced_options["reset_dir"]["Value"].upper() == "LOW":
-                self.reset_line.status = 0
+        if self.reset_pin is not None:
+            self.logger.handle("Attempting to reset the target..", self.logger.INFO)
+            if self.advanced_options["reset_pol"]["Value"].upper() == "LOW":
+                self.reset_pin.status = 0
                 time.sleep(self.advanced_options["reset_hold"]["Value"])
-                self.reset_line.status = 1
+                self.reset_pin.status = 1
             else:
-                self.reset_line.status = 1
+                self.reset_pin.status = 1
                 time.sleep(self.advanced_options["reset_hold"]["Value"])
-                self.reset_line.status = 0
+                self.reset_pin.status = 0
             time.sleep(self.advanced_options["reset_delay"]["Value"])
 
     def init(self):
@@ -279,16 +279,16 @@ class Baudrate(AModule):
         # Set and configure UART interface
         self.uart_instance = UART(serial_instance=self.owf_serial, interface_id=self.options["uart_interface"]["Value"])
 
-        # Unsure reset_line is set to None before initialized it if needed
-        self.reset_line = None
+        # Ensure reset_pin is set to None before initialized it if needed
+        self.reset_pin = None
         # Configure the reset line if defined
         if self.options["reset_pin"]["Value"] != "":
-            self.reset_line = GPIO(serial_instance=self.owf_serial, gpio_pin=self.options["reset_pin"]["Value"])
-            self.reset_line.direction = GPIO.OUTPUT
-            if self.advanced_options["reset_dir"]["Value"].upper() == "LOW":
-                self.reset_line.status = 1
+            self.reset_pin = GPIO(serial_instance=self.owf_serial, gpio_pin=self.options["reset_pin"]["Value"])
+            self.reset_pin.direction = GPIO.OUTPUT
+            if self.advanced_options["reset_pol"]["Value"].upper() == "LOW":
+                self.reset_pin.status = 1
             else:
-                self.reset_line.status = 0
+                self.reset_pin.status = 0
 
         # Set the list of valid characters
         self.valid_characters = self.gen_char_list()
@@ -300,7 +300,7 @@ class Baudrate(AModule):
         """
         for baudrate in range(self.advanced_options["baudrate_min"]["Value"],
                               self.advanced_options["baudrate_max"]["Value"],
-                              self.advanced_options["baudrate_increment"]["Value"]):
+                              self.advanced_options["baudrate_inc"]["Value"]):
             if self.change_baudrate(baudrate=baudrate):
                 self.reset_target()
                 if self.process_baudrate(baudrate=baudrate):
