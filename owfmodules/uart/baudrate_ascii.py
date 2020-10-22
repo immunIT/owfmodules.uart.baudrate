@@ -74,14 +74,11 @@ class Baudrate(AModule):
                                             "Format: raw hex (no leading '0x')",
                              "Default": "0D0A"},
         })
-        self.vowels = ["a", "A", "e", "E", "i", "I", "o", "O", "u", "U", "y", "Y"]
-        self.whitespace = [" ", "\t", "\r", "\n"]
-        self.punctation = [".", ",", ":", ";", "?", "!"]
-        self.control = [b'\x0e', b'\x0f', b'\xe0', b'\xfe', b'\xc0', b'\x0d', b'\x0a']
         self.baudrates = [9600, 19200, 38400, 57600, 115200]
         self.uart_instance = None
         self.reset_pin = None
-        self.valid_characters = None
+        # Generate list of ascii characters including extended ones
+        self.extended_asciitable = list(map(chr, range(0, 255)))
 
     def check_options(self):
         """
@@ -125,27 +122,6 @@ class Baudrate(AModule):
                 return True
         return False
 
-    def gen_char_list(self):
-        """
-        Generate human readable character list.
-        :return: character list.
-        :rtype: List.
-        """
-        c = ' '
-        valid_characters = []
-        while c <= '~':
-            valid_characters.append(c)
-            c = chr(ord(c) + 1)
-
-        for c in self.whitespace:
-            if c not in valid_characters:
-                valid_characters.append(c)
-
-        for c in self.control:
-            if c not in valid_characters:
-                valid_characters.append(c)
-        return valid_characters
-
     def change_baudrate(self, baudrate):
         """
         This function changes the baudrate for the target device.
@@ -168,7 +144,7 @@ class Baudrate(AModule):
     def trigger_device(self):
         """
         Send a character(s) defined by the "trigger_char" advanced option.
-        This method is called whn no byte was receive during the baudrate detection.
+        This method is called when no byte was receive during the baudrate detection.
         :return: Nothing.
         """
         self.logger.handle("Triggering the device", self.logger.INFO)
@@ -198,12 +174,9 @@ class Baudrate(AModule):
         :return: Bool.
         """
         count = 0
-        whitespace = 0
-        punctuation = 0
-        vowels = 0
+        loop = 0
         threshold = 20
 
-        loop = 0
         # Dynamic printing
         progress = self.logger.progress('Reading bytes')
         while True:
@@ -222,26 +195,24 @@ class Baudrate(AModule):
                 except UnicodeDecodeError:
                     byte = tmp
                 # Check if it is a valid character
-                if byte in self.valid_characters:
-                    if byte in self.whitespace:
-                        whitespace += 1
-                    elif byte in self.punctation:
-                        punctuation += 1
-                    elif byte in self.vowels:
-                        vowels += 1
+                if byte in self.extended_asciitable:
                     count += 1
                 else:
-                    # Invalid character, quit the loop and try with the next baudrate value
+                    # Invalid character received, quit the loop and try with the next baudrate value
                     progress.stop()
                     self.logger.handle("{} does not appear to be a valid baudrate setting...".format(baudrate),
                                        self.logger.WARNING)
                     return False
-                if count >= threshold and whitespace > 0 and punctuation >= 0 and vowels > 0:
+                if count >= threshold:
                     progress.stop()
                     self.logger.handle("Valid baudrate found: {}".format(baudrate), self.logger.RESULT)
-                    resp = prompt('Would you like to open a miniterm session ? N/y: ')
+                    resp = prompt('Would you like to open a miniterm session or '
+                                  'continue testing other baudrate value? N(o)/y(es)/c(ontinue): ')
                     if resp.upper() == 'Y':
                         self.uart_pt_miniterm()
+                    # Continue testing other baudrate value
+                    if resp.upper() == 'C':
+                        return False
                     return True
             elif self.options["trigger"]["Value"] and loop < 3:
                 loop += 1
@@ -289,9 +260,6 @@ class Baudrate(AModule):
                 self.reset_pin.status = 1
             else:
                 self.reset_pin.status = 0
-
-        # Set the list of valid characters
-        self.valid_characters = self.gen_char_list()
 
     def incremental_mode(self):
         """
