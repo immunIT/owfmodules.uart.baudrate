@@ -43,7 +43,7 @@ class BaudrateAscii(AModule):
                           "Default": ""},
             "trigger": {"Value": "", "Required": True, "Type": "bool",
                         "Description": "When true, send the character(s) defined in 'trigger_char' (see advanced "
-                                       "options) if the Octowire does not receive anything from the target",
+                                       "options) if the Octowire does not receive anything from the target.",
                         "Default": False}
         }
         self.advanced_options.update({
