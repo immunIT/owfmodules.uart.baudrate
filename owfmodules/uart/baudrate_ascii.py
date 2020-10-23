@@ -172,7 +172,7 @@ class BaudrateAscii(AModule):
 
     def process_baudrate(self, baudrate):
         """
-        Main function. Change the baudrate and check if bytes received on the RX pin are valid characters.
+        Change the baudrate and check if bytes received on the RX pin are valid characters.
         20 valid characters are required to identify the correct baudrate value.
         :return: Bool.
         """
